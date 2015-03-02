@@ -9,7 +9,16 @@ public enum Fractal {
 
 		@Override
 		public Color calculate(Point2D point) {
-			return null;
+			Complex c = new Complex(point.getX(), point.getY());
+			Color col = Color.BLACK;
+			for (int n = 0; n < 100; n++) {
+				c = c.square();
+				c = c.add(new Complex(point.getX(), point.getY()));
+				if (c.modulusSquared() < 2) continue;
+				float f = n/100;
+				col = new Color(f, 1-f, 1-f);
+			}
+			return col;
 		}
 
 	},

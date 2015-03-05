@@ -1,4 +1,4 @@
-import com.github.pterolatypus.comp1206.coursework.fractal.AppWindow;
+import com.github.pterolatypus.comp1206.coursework.fract.gui.AppWindow;
 
 
 

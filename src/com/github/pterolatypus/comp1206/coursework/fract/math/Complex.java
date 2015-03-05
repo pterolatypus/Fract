@@ -1,4 +1,4 @@
-package com.github.pterolatypus.comp1206.coursework.fractal;
+package com.github.pterolatypus.comp1206.coursework.fract.math;
 
 
 public class Complex {

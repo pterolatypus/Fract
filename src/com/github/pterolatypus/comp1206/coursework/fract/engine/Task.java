@@ -1,4 +1,4 @@
-package com.github.pterolatypus.comp1206.coursework.fractal;
+package com.github.pterolatypus.comp1206.coursework.fract.engine;
 
 public class Task implements Runnable {
 
@@ -11,13 +11,15 @@ public class Task implements Runnable {
 	}
 	
 	public Task() {
-		this(-1);
+		this(0);
 	}
 	
 	@Override
 	public void run() {
 		try {
-			Thread.sleep(timestamp+pauseTime-System.currentTimeMillis());
+			if (timestamp + pauseTime > System.currentTimeMillis()) {
+				Thread.sleep(timestamp+pauseTime-System.currentTimeMillis());
+			}
 		} catch (InterruptedException e) {
 			return;
 		}

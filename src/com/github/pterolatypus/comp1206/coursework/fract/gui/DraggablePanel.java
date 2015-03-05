@@ -1,4 +1,4 @@
-package com.github.pterolatypus.comp1206.coursework.fractal;
+package com.github.pterolatypus.comp1206.coursework.fract.gui;
 
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -20,6 +20,8 @@ public class DraggablePanel extends JPanel {
 	// If snapDistance <= borderOffset no snapping occurs
 	private int snapDistance = 0;
 
+	private boolean bEnabled = true;
+
 	/**
 	 * Default and only constructor for intialising a new draggable JPanel.
 	 * Attribute manipulation is done in separate methods.
@@ -36,13 +38,15 @@ public class DraggablePanel extends JPanel {
 
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				int newx = (int) (getX() + e.getX() - relative.getX());
-				int newy = (int) (getY() + e.getY() - relative.getY());
-				Point target = getInBounds(new Point(newx, newy),
-						new Rectangle(getParent().getWidth(), getParent()
-								.getHeight()));
-				setBounds((int) target.getX(), (int) target.getY(), getWidth(),
-						getHeight());
+				if (bEnabled) {
+					int newx = (int) (getX() + e.getX() - relative.getX());
+					int newy = (int) (getY() + e.getY() - relative.getY());
+					Point target = getInBounds(new Point(newx, newy),
+							new Rectangle(getParent().getWidth(), getParent()
+									.getHeight()));
+					setBounds((int) target.getX(), (int) target.getY(),
+							getWidth(), getHeight());
+				}
 			}
 
 			@Override
@@ -111,6 +115,18 @@ public class DraggablePanel extends JPanel {
 	 */
 	public DraggablePanel setSnapDistance(int newSnapDistance) {
 		this.snapDistance = newSnapDistance;
+		return this;
+	}
+
+	/**
+	 * Sets whether or not this panel is enabled for dragging
+	 * 
+	 * @param bEnabled
+	 *            Whether the panel should be enabled.
+	 * @return This, for method chaining.
+	 */
+	public DraggablePanel setDragEnabled(boolean bEnabled) {
+		this.bEnabled = bEnabled;
 		return this;
 	}
 

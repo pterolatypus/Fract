@@ -1,24 +1,25 @@
 package com.github.pterolatypus.comp1206.coursework.fractal;
 
-
 import java.awt.Color;
 
 public enum Fractal {
 
+	
 	MANDELBROT {
 
 		@Override
 		public Color calculate(Complex point) {
 			Complex c = new Complex(point.getReal(), point.getImaginary());
-			Color col = Color.BLACK;
-			for (int n = 0; n < 100; n++) {
+			for (int n = 0; n < MAX_ITERATIONS; n++) {
 				c = c.square();
 				c = c.add(new Complex(point.getReal(), point.getImaginary()));
-				if (c.modulusSquared() < 2) continue;
-				float f = n/100;
-				col = new Color(f, 1-f, 1-f);
+				if (c.modulusSquared() > 4) {
+					float f = (float) Math.log(Math.log(c.modulusSquared())/Math.log(2));
+					f = Math.abs(n+1 - f)/MAX_ITERATIONS;
+					return new Color(f,f,(float) ((1-f)*0.6));
+				}
 			}
-			return col;
+			return Color.BLACK;
 		}
 
 	},
@@ -32,5 +33,8 @@ public enum Fractal {
 
 	};
 
+	private static final int MAX_ITERATIONS = 100;
+	
 	public abstract Color calculate(Complex point);
+	
 }

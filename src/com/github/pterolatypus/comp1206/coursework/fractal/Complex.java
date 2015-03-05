@@ -1,5 +1,6 @@
 package com.github.pterolatypus.comp1206.coursework.fractal;
 
+
 public class Complex {
 
 	private double real;

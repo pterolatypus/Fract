@@ -1,10 +1,12 @@
-import com.github.pterolatypus.comp1206.coursework.fractal.AppEngine;
+import com.github.pterolatypus.comp1206.coursework.fractal.AppWindow;
+
 
 
 public class Main {
 
 	public static void main(String[] args) {
-		(new AppEngine()).start();
+		AppWindow window = new AppWindow();
+		window.setVisible(true);
 	}
 
 }

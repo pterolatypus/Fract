@@ -1,5 +1,6 @@
 package com.github.pterolatypus.comp1206.coursework.fractal;
 
+
 import java.awt.Color;
 
 public enum Fractal {

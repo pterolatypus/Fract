@@ -1,7 +1,6 @@
 package com.github.pterolatypus.comp1206.coursework.fractal;
 
 import java.awt.Color;
-import java.awt.geom.Point2D;
 
 public enum Fractal {
 
@@ -26,11 +25,11 @@ public enum Fractal {
 	JULIA {
 
 		@Override
-		public Color calculate(Point2D point) {
+		public Color calculate(Complex point) {
 			return null;
 		}
 
 	};
 
-	public abstract Color calculate(Point2D point);
+	public abstract Color calculate(Complex point);
 }

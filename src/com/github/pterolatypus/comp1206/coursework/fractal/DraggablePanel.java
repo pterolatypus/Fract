@@ -15,12 +15,13 @@ public class DraggablePanel extends JPanel {
 	
 	public DraggablePanel() {
 		super();
-		this.
 		setBackground(Color.RED);
 		this.addMouseMotionListener(new MouseAdapter() {
 			@Override
 			public void mouseDragged(MouseEvent e) {
-				setBounds((int)(e.getX()-relative.getX()),(int)(e.getY()-relative.getY()),getWidth(), getHeight());
+				int newx = (int)(e.getX()-0);
+				int newy = (int)(e.getY()-0);
+				setBounds(newx,newy,getWidth(), getHeight());
 			}
 		});
 		this.addMouseListener(new MouseAdapter(){

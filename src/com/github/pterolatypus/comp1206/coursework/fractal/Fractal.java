@@ -8,12 +8,12 @@ public enum Fractal {
 	MANDELBROT {
 
 		@Override
-		public Color calculate(Point2D point) {
-			Complex c = new Complex(point.getX(), point.getY());
+		public Color calculate(Complex point) {
+			Complex c = new Complex(point.getReal(), point.getImaginary());
 			Color col = Color.BLACK;
 			for (int n = 0; n < 100; n++) {
 				c = c.square();
-				c = c.add(new Complex(point.getX(), point.getY()));
+				c = c.add(new Complex(point.getReal(), point.getImaginary()));
 				if (c.modulusSquared() < 2) continue;
 				float f = n/100;
 				col = new Color(f, 1-f, 1-f);

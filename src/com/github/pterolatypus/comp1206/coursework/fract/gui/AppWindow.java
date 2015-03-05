@@ -2,6 +2,11 @@ package com.github.pterolatypus.comp1206.coursework.fract.gui;
 
 import java.awt.Cursor;
 import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -32,7 +37,7 @@ public class AppWindow extends JFrame {
 		CoordinatePanel pnlC = new CoordinatePanel(pnlGraphMain);
 		pnlC.setVisible(true);
 		
-		JPanel glasspane = new JPanel();
+		final JPanel glasspane = new JPanel();
 		this.setGlassPane(glasspane);
 		
 		glasspane.add(pnlC);
@@ -46,6 +51,35 @@ public class AppWindow extends JFrame {
 		glasspane.setOpaque(false);
 		glasspane.setVisible(true);
 		
+		MouseAdapter zoomListener = new MouseAdapter() {
+			Point p;
+			@Override
+			public void mouseDragged(MouseEvent e) {
+				repaint();
+				Graphics g = glasspane.getGraphics();
+				int x = (int) Math.min(e.getX(), p.getX());
+				int y = (int) Math.min(e.getY(), p.getY());
+				int width = (int) Math.abs(e.getX()-p.getX());
+				int height = (int) Math.abs(e.getY()-p.getY());
+				g.drawRect(x,y,width,height);
+			}
+			@Override
+			public void mousePressed(MouseEvent e) {
+				p = e.getPoint();
+				System.out.println(e.getX()+":"+e.getY());
+			}
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				int x = (int) Math.min(e.getX(), p.getX());
+				int y = (int) Math.min(e.getY(), p.getY());
+				int width = (int) Math.abs(e.getX()-p.getX());
+				int height = (int) Math.abs(e.getY()-p.getY());
+				Rectangle r = new Rectangle(x,y,width,height);
+				pnlGraphMain.setMathBounds(r);
+			}
+		};
+		
+		pnlGraphMain.addMouseMotionListener(zoomListener);
 	}
 
 }

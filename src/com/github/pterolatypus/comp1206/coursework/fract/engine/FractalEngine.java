@@ -15,13 +15,13 @@ import com.github.pterolatypus.comp1206.coursework.fract.math.Fractal;
 public class FractalEngine extends Thread {
 
 	private boolean bRun = true;
-	
+
 	private ConcurrentLinkedQueue<Runnable> taskQueue = new ConcurrentLinkedQueue<Runnable>();
 	private NotifyListener parent;
-	
+
 	private Fractal f;
-	private Double mathBounds = new Rectangle2D.Double(-2D,1.6D,4D,-3.2D);
-	
+	private Double mathBounds;
+
 	private BufferedImage graphImage;
 	
 	public FractalEngine(Fractal f, NotifyListener parent) {
@@ -30,15 +30,15 @@ public class FractalEngine extends Thread {
 		this.parent = parent;
 		this.setPriority(this.getPriority() - 1);
 	}
-	
+
 	@Override
 	public void run() {
-		while(bRun) {
+		while (bRun) {
 			try {
-				while(taskQueue.isEmpty()) {
+				while (taskQueue.isEmpty()) {
 					Thread.sleep(10);
 				}
-				while(taskQueue.size() > 1) {
+				while (taskQueue.size() > 1) {
 					taskQueue.poll();
 				}
 				Runnable r = taskQueue.poll();
@@ -49,14 +49,19 @@ public class FractalEngine extends Thread {
 		}
 	}
 	
+	public void updateFractal(Fractal f) {
+		this.f = f;
+	}
+
 	public BufferedImage getImage() {
 		return graphImage;
 	}
-	
+
 	public void updateMathBounds(Rectangle2D.Double mathBounds) {
 		this.mathBounds = mathBounds;
+		
 	}
-	
+
 	public void updateImage(final Rectangle pixelBounds) {
 		taskQueue.add(new Task() {
 			public void run() {
@@ -64,10 +69,14 @@ public class FractalEngine extends Thread {
 				BufferedImage im = new BufferedImage((int)pixelBounds.getWidth(), (int)pixelBounds.getHeight(), BufferedImage.TYPE_INT_RGB);
 				for (int x = 0; x < pixelBounds.getWidth(); x++) {
 					for (int y = 0; y < pixelBounds.getHeight(); y++) {
-						double mathX = (x/pixelBounds.getWidth())*mathBounds.getWidth()+mathBounds.getX();
-						double mathY = (y/pixelBounds.getHeight())*mathBounds.getHeight()+mathBounds.getY();
-						Color c = f.calculate(new Complex(mathX,mathY));
-						im.setRGB(x,y,c.getRGB());
+						if (x==0 || y==0 || x==pixelBounds.getWidth()-1 || y==pixelBounds.getWidth()-1) {
+							im.setRGB(x,y,Color.BLACK.getRGB());
+						} else {
+							double mathX = (x/pixelBounds.getWidth())*mathBounds.getWidth()+mathBounds.getX();
+							double mathY = (y/pixelBounds.getHeight())*mathBounds.getHeight()+mathBounds.getY();
+							Color c = f.calculate(new Complex(mathX,mathY));
+							im.setRGB(x,y,c.getRGB());
+						}
 					}
 				}
 				graphImage = im;
@@ -75,19 +84,21 @@ public class FractalEngine extends Thread {
 			}
 		});
 	}
-	
+
 	public void updateImage(Rectangle pixelBounds, Fractal f) {
 		this.f = f;
 		updateImage(pixelBounds);
 	}
-	
+
 	public void terminate() {
 		bRun = false;
 	}
-	
-	public Point2D.Double getMathCoords(Point pixelCoords, Rectangle pixelBounds) {
-		double mathX = (pixelCoords.getX()/pixelBounds.getWidth())*mathBounds.getWidth()+mathBounds.getX();
-		double mathY = (pixelCoords.getY()/pixelBounds.getHeight())*mathBounds.getHeight()+mathBounds.getY();
-		return new Point2D.Double(mathX, mathY);
+
+	public Complex getMathCoords(Point pixelCoords, Rectangle pixelBounds) {
+		double mathX = (pixelCoords.getX() / pixelBounds.getWidth())
+				* mathBounds.getWidth() + mathBounds.getX();
+		double mathY = (pixelCoords.getY() / pixelBounds.getHeight())
+				* mathBounds.getHeight() + mathBounds.getY();
+		return new Complex(mathX, mathY);
 	}
 }

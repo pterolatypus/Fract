@@ -1,25 +1,35 @@
 package com.github.pterolatypus.comp1206.coursework.fract.gui;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Stack;
+
+import javax.swing.JPanel;
 
 import com.github.pterolatypus.comp1206.coursework.fract.engine.FractalEngine;
 import com.github.pterolatypus.comp1206.coursework.fract.engine.NotifyListener;
+import com.github.pterolatypus.comp1206.coursework.fract.math.Complex;
 import com.github.pterolatypus.comp1206.coursework.fract.math.Fractal;
 
-public class GraphPanel extends DraggablePanel implements NotifyListener {
+public class GraphPanel extends JPanel implements NotifyListener {
 
 	private static final long serialVersionUID = AppWindow.serialVersionUID;
 	private FractalEngine graphEngine;
-
+	private Stack<Rectangle2D.Double> stackZoomFrames = new Stack<Rectangle2D.Double>();
+	
 	public GraphPanel(Fractal f) {
+		super();
 		this.graphEngine = new FractalEngine(f, this);
 		graphEngine.start();
+		stackZoomFrames.push(new Rectangle2D.Double(-2d,1.6d,4d,-3.2d));
+		graphEngine.updateMathBounds(stackZoomFrames.peek());
 
 		// Force the entire graph to be recalculated when the window is resized,
 		// as the resize will alter the graph resolution
@@ -33,7 +43,9 @@ public class GraphPanel extends DraggablePanel implements NotifyListener {
 	}
 
 	public void paint(Graphics g) {
-		g.drawImage(graphEngine.getImage(), 0, 0, this);
+		Graphics2D gr = (Graphics2D) g;
+		gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		gr.drawImage(graphEngine.getImage(), 0, 0, this);
 	}
 	
 	public void updateImage(Rectangle pixelBounds, Fractal f) {
@@ -41,9 +53,20 @@ public class GraphPanel extends DraggablePanel implements NotifyListener {
 	}
 	
 	public void setMathBounds(Rectangle pixelBounds) {
-		Point2D.Double tl = getMathCoords(pixelBounds.getLocation());
-		Point2D.Double br = getMathCoords(new Point((int)(pixelBounds.getX()+pixelBounds.getWidth()), (int)(pixelBounds.getY()+pixelBounds.getHeight())));
-		graphEngine.updateMathBounds(new Rectangle2D.Double(tl.getX(), tl.getY(), br.getX()-tl.getX(), br.getY()-tl.getY()));
+		Complex tl = getMathCoords(pixelBounds.getLocation());
+		Complex br = getMathCoords(new Point((int)(pixelBounds.getX()+pixelBounds.getWidth()), (int)(pixelBounds.getY()+pixelBounds.getHeight())));
+		Rectangle2D.Double mathBounds = new Rectangle2D.Double(tl.getReal(), tl.getImaginary(), br.getReal()-tl.getReal(), br.getImaginary()-tl.getImaginary());
+		stackZoomFrames.push(mathBounds);
+		graphEngine.updateMathBounds(stackZoomFrames.peek());
+		graphEngine.updateImage(new Rectangle(getWidth(), getHeight()));
+	}
+	
+	public void zoomOut() {
+		if (stackZoomFrames.size() > 1) {
+			stackZoomFrames.pop();
+		}
+		graphEngine.updateMathBounds(stackZoomFrames.peek());
+		graphEngine.updateImage(new Rectangle(getWidth(), getHeight()));
 	}
 
 	@Override
@@ -51,8 +74,13 @@ public class GraphPanel extends DraggablePanel implements NotifyListener {
 		this.repaint();
 	}
 
-	public Point2D.Double getMathCoords(Point pixelCoords) {
+	public Complex getMathCoords(Point pixelCoords) {
 		return graphEngine.getMathCoords(pixelCoords, new Rectangle(getWidth(), getHeight()));
+	}
+	
+	public void updateFractal(Fractal f) {
+		graphEngine.updateFractal(f);
+		graphEngine.updateImage(new Rectangle(getWidth(), getHeight()));
 	}
 	
 }

@@ -14,9 +14,9 @@ public abstract class Fractal {
 				c = c.square();
 				c = c.add(new Complex(point.getReal(), point.getImaginary()));
 				if (c.modulusSquared() > 4) {
-					float f = (float) Math.log(Math.log(c.modulusSquared())/Math.log(2));
+					float f = (float) Math.log(Math.log(Math.sqrt(c.modulusSquared()))/Math.log(2));
 					f = Math.abs(n+1 - f)/MAX_ITERATIONS;
-					return new Color(f,f,(float) ((1-f)*0.6));
+					return new Color(f,f,(float) ((1-f)*0.4));
 				}
 			}
 			return Color.BLACK;
@@ -25,7 +25,7 @@ public abstract class Fractal {
 	};
 
 	public static class Julia extends Fractal {
-
+		
 		private Complex init;
 		
 		public Julia(Complex init) {
@@ -34,12 +34,12 @@ public abstract class Fractal {
 		
 		@Override
 		public Color calculate(Complex point) {
-			Complex c = init;
+			Complex c = point;
 			for (int n = 0; n < MAX_ITERATIONS; n++) {
 				c = c.square();
-				c = c.add(new Complex(point.getReal(), point.getImaginary()));
+				c = c.add(new Complex(init.getReal(), init.getImaginary()));
 				if (c.modulusSquared() > 4) {
-					float f = (float) Math.log(Math.log(c.modulusSquared())/Math.log(2));
+					float f = (float) Math.log(Math.log(Math.sqrt(c.modulusSquared()))/Math.log(2));
 					f = Math.abs(n+1 - f)/MAX_ITERATIONS;
 					return new Color(f,f,(float) ((1-f)*0.6));
 				}
@@ -49,7 +49,7 @@ public abstract class Fractal {
 
 	};
 
-	private static final int MAX_ITERATIONS = 100;
+	private static int MAX_ITERATIONS = 200;
 	
 	public abstract Color calculate(Complex point);
 	

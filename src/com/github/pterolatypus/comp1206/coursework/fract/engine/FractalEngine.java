@@ -49,8 +49,8 @@ public class FractalEngine extends Thread {
 		}
 	}
 	
-	public void updateFractal(Fractal f) {
-		this.f = f;
+	public void updateFractal(Complex p) {
+		this.f = f.updateFractal(p);
 	}
 
 	public BufferedImage getImage() {
@@ -63,9 +63,8 @@ public class FractalEngine extends Thread {
 	}
 
 	public void updateImage(final Rectangle pixelBounds) {
-		taskQueue.add(new Task() {
+		taskQueue.add(new Runnable() {
 			public void run() {
-				super.run();
 				BufferedImage im = new BufferedImage((int)pixelBounds.getWidth(), (int)pixelBounds.getHeight(), BufferedImage.TYPE_INT_RGB);
 				for (int x = 0; x < pixelBounds.getWidth(); x++) {
 					for (int y = 0; y < pixelBounds.getHeight(); y++) {

@@ -7,7 +7,6 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Stack;
 
@@ -78,8 +77,8 @@ public class GraphPanel extends JPanel implements NotifyListener {
 		return graphEngine.getMathCoords(pixelCoords, new Rectangle(getWidth(), getHeight()));
 	}
 	
-	public void updateFractal(Fractal f) {
-		graphEngine.updateFractal(f);
+	public void updateFractal(Complex p) {
+		graphEngine.updateFractal(p);
 		graphEngine.updateImage(new Rectangle(getWidth(), getHeight()));
 	}
 	

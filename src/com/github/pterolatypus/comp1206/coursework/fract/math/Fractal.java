@@ -22,6 +22,11 @@ public abstract class Fractal {
 			return Color.BLACK;
 		}
 
+		@Override
+		public Fractal updateFractal(Complex point) {
+			return this;
+		}
+
 	};
 
 	public static class Julia extends Fractal {
@@ -47,10 +52,20 @@ public abstract class Fractal {
 			return Color.BLACK;
 		}
 
+		@Override
+		public Fractal updateFractal(Complex point) {
+			if (!point.equals(init)) {
+				return new Fractal.Julia(point);
+			}
+			return this;
+		}
+
 	};
 
 	private static int MAX_ITERATIONS = 200;
 	
 	public abstract Color calculate(Complex point);
+	
+	public abstract Fractal updateFractal(Complex point);
 	
 }

@@ -50,7 +50,7 @@ public class CoordinatePanel extends CursorPanel {
 		txtY.setText(y);
 	}
 	
-	public MouseAdapter getListener(final GraphPanel parent) {
+	public MouseAdapter getListener(final GraphContainer parent) {
 		final CoordinatePanel panel = this;
 		MouseAdapter m = new MouseAdapter() {
 			@Override

@@ -56,7 +56,7 @@ public class GraphPanel extends JPanel implements NotifyListener {
 		Complex br = getMathCoords(new Point((int)(pixelBounds.getX()+pixelBounds.getWidth()), (int)(pixelBounds.getY()+pixelBounds.getHeight())));
 		Rectangle2D.Double mathBounds = new Rectangle2D.Double(tl.getReal(), tl.getImaginary(), br.getReal()-tl.getReal(), br.getImaginary()-tl.getImaginary());
 		stackZoomFrames.push(mathBounds);
-		graphEngine.updateMathBounds(stackZoomFrames.peek());
+		graphEngine.updateMathBounds(mathBounds);
 		graphEngine.updateImage(new Rectangle(getWidth(), getHeight()));
 	}
 	

@@ -71,9 +71,18 @@ public class Complex implements Serializable {
 	}
 	
 	public Complex pow(int power) {
-		Complex c = new Complex(getReal(), getImaginary());
-		for (int i = power; i > 1; i--) {
-			c = c.multiply(c);
+		Complex c = clone();
+		if (power == 1) {
+			return c;
+		}
+		double n = Math.log(power)/Math.log(2);
+		int f = (int) Math.floor(n);
+		for (int i = f; i > 0 ; i--) {
+			c = c.square();
+		}
+		int r = power - f;
+		for (int i = r; i > 0; i--) {
+			c = c.pow(r);
 		}
 		return c;
 	}

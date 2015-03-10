@@ -10,6 +10,13 @@ public class Main {
 			e.printStackTrace();
 		}
 		window.setVisible(true);
+		
+//		Complex c = new Complex(0, 1);
+//
+//		for(int i = 1; i < 10; i++) {
+//			System.out.println(c.pow(i).getReal() +" + "+c.pow(i).getImaginary()+"i");
+//		}
+		
 	}
 
 }

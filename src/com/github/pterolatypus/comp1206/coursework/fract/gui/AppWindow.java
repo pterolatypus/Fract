@@ -81,6 +81,8 @@ public class AppWindow extends JFrame {
 		fractals.put(new Fractal.Julia(new Complex(0, 0)).toString(),
 				new Fractal.Julia(new Complex(0, 0)));
 		fractals.put(Fractal.BURNING_SHIP.toString(), Fractal.BURNING_SHIP);
+		fractals.put(Fractal.TRICORN.toString(), Fractal.TRICORN);
+		fractals.put(new Fractal.Multibrot(5).toString(), new Fractal.Multibrot(5));
 	}
 
 	//Map of possible coloring algorithms

@@ -109,4 +109,8 @@ public class FractalEngine extends Thread {
 				* mathBounds.getHeight() + mathBounds.getY();
 		return new Complex(mathX, mathY);
 	}
+
+	public String getFractal() {
+		return f.toString();
+	}
 }

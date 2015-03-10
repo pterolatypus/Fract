@@ -19,6 +19,33 @@ public abstract class Fractal {
 			setColoring(col);
 			return this;
 		}
+		
+		@Override
+		public String toString() {
+			return "Mandelbrot";
+		}
+	};
+	
+	public static Fractal TRICORN = new Fractal() {
+
+		@Override
+		public Color calculate(Complex point) {
+			Complex c = new Complex(point.getReal(),point.getImaginary());
+			for (int n = 0; n < MAX_ITERATIONS; n++) {
+				c = c.conjugate().square();
+				c = c.add(new Complex(point.getReal(), point.getImaginary()));
+				if (c.modulusSquared() > 4) {
+					return col.getColor(n, c, MAX_ITERATIONS);
+				}
+			}
+			return col.getNonDivergentColor();
+		}
+
+		@Override
+		public String toString() {
+			return "Tricorn";
+		}
+		
 	};
 	
 	public static class Multibrot extends Fractal {
@@ -38,6 +65,10 @@ public abstract class Fractal {
 			}
 			return col.getNonDivergentColor();
 		}
+		@Override
+		public String toString() {
+			return "Multibrot "+power;
+		}
 	}
 	
 	public static Fractal BURNING_SHIP = new Fractal() {
@@ -53,6 +84,11 @@ public abstract class Fractal {
 				}
 			}
 			return col.getNonDivergentColor();
+		}
+
+		@Override
+		public String toString() {
+			return "Burning Ship";
 		}		
 	};
 
@@ -87,6 +123,11 @@ public abstract class Fractal {
 			return this;
 		}
 
+		@Override
+		public String toString() {
+			return "Julia";
+		}
+
 	};
 
 	private static int MAX_ITERATIONS = 200;
@@ -100,6 +141,17 @@ public abstract class Fractal {
 	
 	public void setColoring(Coloring c) {
 		this.col = c;
+	}
+	
+	@Override
+	public abstract String toString();
+	
+	public static void setMaxIterations(int newi) {
+		MAX_ITERATIONS = newi;
+	}
+	
+	public static int getMaxIterations() {
+		return MAX_ITERATIONS;
 	}
 	
 }

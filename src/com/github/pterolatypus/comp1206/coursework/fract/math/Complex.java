@@ -1,8 +1,14 @@
 package com.github.pterolatypus.comp1206.coursework.fract.math;
 
+import java.io.Serializable;
 
-public class Complex {
+import com.github.pterolatypus.comp1206.coursework.fract.gui.AppWindow;
 
+
+public class Complex implements Serializable {
+
+	private static final long serialVersionUID = AppWindow.serialVersionUID;
+	
 	private double real;
 	private double imaginary;
 	
@@ -74,8 +80,11 @@ public class Complex {
 	
 	@Override
 	public Complex clone() {
-		Complex x = new Complex(this.getReal(), this.getImaginary());
-		return x;
+		return new Complex(this.getReal(), this.getImaginary());
+	}
+	
+	public Complex conjugate() {
+		return new Complex(this.getReal(), -this.getImaginary());
 	}
 	
 }

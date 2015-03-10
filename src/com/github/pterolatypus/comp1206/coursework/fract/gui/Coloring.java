@@ -1,7 +1,6 @@
 package com.github.pterolatypus.comp1206.coursework.fract.gui;
 
 import java.awt.Color;
-import java.util.Arrays;
 
 import com.github.pterolatypus.comp1206.coursework.fract.math.Complex;
 
@@ -10,6 +9,8 @@ public abstract class Coloring {
 	public abstract Color getColor(int iterations, Complex dPoint, int MAX_ITERATIONS);
 	
 	public abstract Color getNonDivergentColor();
+	
+	public abstract Coloring setColorPalette(Color[] palette);
 	
 	public static class LogSmooth extends Coloring {
 		
@@ -40,7 +41,12 @@ public abstract class Coloring {
 		
 		@Override
 		public Color getNonDivergentColor() {
-			return Color.black;
+			return Color.white;
+		}
+		@Override
+		public Coloring setColorPalette(Color[] palette) {
+			this.palette = palette;
+			return this;
 		}
 	};
 	
@@ -74,7 +80,11 @@ public abstract class Coloring {
 	
 	public static class LogSmoothRepeating extends LogSmooth {
 		
-		private int repetitions = 2;
+		private int repetitions = 12;
+		
+		public LogSmoothRepeating() {
+			super();
+		}
 		
 		public LogSmoothRepeating(int repeats) {
 			super();

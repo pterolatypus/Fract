@@ -93,5 +93,9 @@ public class GraphPanel extends JPanel {
 		graphEngine.updateFractal(p);
 		graphEngine.updateImage(new Rectangle(getWidth(), getHeight()));
 	}
+	
+	public String getFractal() {
+		return graphEngine.getFractal();
+	}
 
 }

@@ -66,4 +66,8 @@ public class GraphContainer extends DraggablePanel {
 		repaint();
 	}
 	
+	public String getFractal() {
+		return panel.getFractal();
+	}
+	
 }

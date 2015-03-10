@@ -14,13 +14,17 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -28,8 +32,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import com.github.pterolatypus.comp1206.coursework.fract.gui.Coloring.LogSmoothRepeating;
 import com.github.pterolatypus.comp1206.coursework.fract.math.Complex;
 import com.github.pterolatypus.comp1206.coursework.fract.math.Fractal;
 import com.github.pterolatypus.comp1206.coursework.fract.math.MathUtil;
@@ -38,14 +44,68 @@ public class AppWindow extends JFrame {
 
 	public static final long serialVersionUID = 0L;
 
-	public static final String ACTION_SPACE_PRESSED = "action_space_pressed";
+	// Object to store the 'user selected point'
+	class ComplexCursor {
+		private Complex point = null;
 
-	private Complex cursor = null;
+		public void setPoint(Complex p) {
+			this.point = p;
+		}
+
+		public Complex getPoint() {
+			return point;
+		}
+
+		public String toString() {
+			return "Selected point: " + MathUtil.round(getPoint().getReal(), 3)
+					+ "+" + MathUtil.round(-getPoint().getImaginary(), 3) + "i";
+		}
+	}
+
+	//"
+	ComplexCursor cursor = new ComplexCursor();
+
+	// Flag for which mode we're in; click-to-select (true) or live update
+	// (false)
 	private boolean bCursorMode = false;
 
+	// Favourite points, with names.
 	private Map<String, Complex> favourites = new HashMap<String, Complex>();
-	
-	public AppWindow() {
+
+	// Possible configurable fractals
+	private static Map<String, Fractal> fractals = new HashMap<String, Fractal>();
+
+	// Statically populate the list of renderable fractals.
+	static {
+		fractals.put(Fractal.MANDELBROT.toString(), Fractal.MANDELBROT);
+		fractals.put(new Fractal.Julia(new Complex(0, 0)).toString(),
+				new Fractal.Julia(new Complex(0, 0)));
+		fractals.put(Fractal.BURNING_SHIP.toString(), Fractal.BURNING_SHIP);
+	}
+
+	//Map of possible coloring algorithms
+	private static Map<String, Class<? extends Coloring>> colorschemes = new HashMap<String, Class<? extends Coloring>>();
+
+	//Statically populate the list of coloring algorithms
+	static {
+		colorschemes.put("Smooth Coloring", Coloring.LogSmooth.class);
+		colorschemes.put("Smooth Double-Ended",
+				Coloring.LogSmoothDoubleEnded.class);
+		colorschemes.put("Smooth Double-Ended Repeating",
+				LogSmoothRepeating.class);
+	}
+
+	//The palette of colors to iterate through when choosing pixel color
+	private static Color[] sPalette = new Color[] { Color.red, Color.orange,
+			Color.white };
+
+	//The two actual panels that will appear on screen and abstractly contain the GraphPanels
+	private GraphContainer pnlCorner = new GraphContainer();
+	private GraphContainer pnlMain = new GraphContainer();
+
+	//Pretty much everything happens here.
+	public AppWindow() throws InstantiationException, IllegalAccessException {
+		// Boilerplate setup
 		super("Fract: Interactive Fractal Visualizer");
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
@@ -55,20 +115,26 @@ public class AppWindow extends JFrame {
 		this.setExtendedState(MAXIMIZED_BOTH);
 		this.setLayout(new BorderLayout());
 
-		final GraphPanel pnlMandelbrot = new GraphPanel(Fractal.MANDELBROT);
-		pnlMandelbrot.setColorScheme(new Coloring.LogSmooth(new Color[] {
-				Color.red, Color.orange, Color.white }));
-		final GraphPanel pnlJulia = new GraphPanel(new Fractal.Julia(
-				new Complex(0, 0)));
-		pnlJulia.setColorScheme(new Coloring.LogSmooth());
+		// Scoped to stop me accidentally referencing the GraphPanels elsewhere.
+		// GraphPanels shouldn't be referenced, they should remain anonymous to
+		// make panel-switching possible
+		{
+			GraphPanel pnlMandelbrot = new GraphPanel(Fractal.MANDELBROT);
+			pnlMandelbrot.setColorScheme(colorschemes
+					.get("Smooth Double-Ended").newInstance()
+					.setColorPalette(sPalette));
+			GraphPanel pnlJulia = new GraphPanel(new Fractal.Julia(new Complex(
+					0, 0)));
+			pnlJulia.setColorScheme(colorschemes
+					.get("Smooth Double-Ended").newInstance()
+					.setColorPalette(sPalette));
 
-		final GraphContainer pnlMain = new GraphContainer();
-		pnlMain.setPanel(pnlMandelbrot);
-		pnlMain.setLayout(new GridLayout(1, 1));
+			pnlMain.setPanel(pnlMandelbrot);
+			pnlMain.setLayout(new GridLayout(1, 1));
 
-		final GraphContainer pnlCorner = new GraphContainer();
-		pnlCorner.setPanel(pnlJulia);
-		pnlCorner.setLayout(new GridLayout(1, 1));
+			pnlCorner.setPanel(pnlJulia);
+			pnlCorner.setLayout(new GridLayout(1, 1));
+		}
 
 		final JPanel pnlOverlay = new JPanel();
 		pnlOverlay.setLayout(null);
@@ -156,7 +222,7 @@ public class AppWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				bCursorMode = true;
-				pnlCorner.updateFractal(cursor);
+				pnlCorner.updateFractal(cursor.getPoint());
 			}
 		});
 		m.addMenuItem(item, KeyEvent.VK_D);
@@ -166,9 +232,9 @@ public class AppWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				bCursorMode = false;
-				cursor = pnlMain.getMathCoords(MouseInfo.getPointerInfo()
-						.getLocation());
-				pnlCorner.updateFractal(cursor);
+				cursor.setPoint(pnlMain.getMathCoords(MouseInfo
+						.getPointerInfo().getLocation()));
+				pnlCorner.updateFractal(cursor.getPoint());
 			}
 		});
 		m.addMenuItem(item, KeyEvent.VK_R);
@@ -178,8 +244,6 @@ public class AppWindow extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				bCursorMode = true;
-				cursor = pnlMain.getMathCoords(MouseInfo.getPointerInfo()
-						.getLocation());
 				final JDialog dlg = new JDialog();
 				dlg.setLayout(new GridBagLayout());
 				GridBagConstraints c = new GridBagConstraints();
@@ -214,10 +278,15 @@ public class AppWindow extends JFrame {
 				btnSave.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						Complex x = cursor.clone();
-						final String name = txtName.getText() + "(" + MathUtil.round(x.getReal(), 3) + " + " + MathUtil.round(x.getImaginary(), 3) + "i)";
+						final String name = txtName.getText()
+								+ "("
+								+ MathUtil
+										.round(cursor.getPoint().getReal(), 3)
+								+ " + "
+								+ MathUtil.round(cursor.getPoint()
+										.getImaginary(), 3) + "i)";
 						if (!favourites.containsKey(name)) {
-							favourites.put(name, cursor);
+							favourites.put(name, cursor.getPoint());
 							dlg.dispatchEvent(new WindowEvent(dlg,
 									WindowEvent.WINDOW_CLOSING));
 						} else {
@@ -239,7 +308,7 @@ public class AppWindow extends JFrame {
 							btnYes.addActionListener(new ActionListener() {
 								@Override
 								public void actionPerformed(ActionEvent e) {
-									favourites.put(name, cursor);
+									favourites.put(name, cursor.getPoint());
 									dlgYN.dispatchEvent(new WindowEvent(dlgYN,
 											WindowEvent.WINDOW_CLOSING));
 									dlg.dispatchEvent(new WindowEvent(dlg,
@@ -276,7 +345,7 @@ public class AppWindow extends JFrame {
 
 				JLabel lblLoad = new JLabel("Select a favourite to load");
 
-				c.insets = new Insets(5,5,5,5);
+				c.insets = new Insets(5, 5, 5, 5);
 				c.gridwidth = 2;
 				c.gridy = 0;
 
@@ -299,10 +368,11 @@ public class AppWindow extends JFrame {
 						String s;
 						if ((s = (String) cbxFavourites.getSelectedItem()) != null) {
 							bCursorMode = true;
-							cursor = favourites.get(s);
-							pnlCorner.updateFractal(cursor);
+							cursor.setPoint(favourites.get(s));
+							pnlCorner.updateFractal(cursor.getPoint());
 							pnlCorner.repaint();
-							dlg.dispatchEvent(new WindowEvent(dlg, WindowEvent.WINDOW_CLOSING));
+							dlg.dispatchEvent(new WindowEvent(dlg,
+									WindowEvent.WINDOW_CLOSING));
 						}
 					}
 				});
@@ -310,10 +380,11 @@ public class AppWindow extends JFrame {
 				btnCancel.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						dlg.dispatchEvent(new WindowEvent(dlg, WindowEvent.WINDOW_CLOSING));
+						dlg.dispatchEvent(new WindowEvent(dlg,
+								WindowEvent.WINDOW_CLOSING));
 					}
 				});
-				
+
 				c.fill = GridBagConstraints.NONE;
 				c.gridwidth = 1;
 				c.gridy = 2;
@@ -328,7 +399,189 @@ public class AppWindow extends JFrame {
 			}
 		});
 		m.addMenuItem(item, KeyEvent.VK_O);
-		
+
+		item = new JMenuItem("Configure Fractal");
+		item.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final JDialog dlg = new JDialog();
+				dlg.setLayout(new GridBagLayout());
+				GridBagConstraints c = new GridBagConstraints();
+
+				JLabel lblChoosePanel = new JLabel(
+						"Select a panel to configure");
+
+				c.gridwidth = 2;
+				c.gridy = 0;
+				dlg.add(lblChoosePanel, c);
+
+				final JRadioButton btnPnlMain = new JRadioButton("Main Panel");
+				final JRadioButton btnPnlCorner = new JRadioButton(
+						"Corner Panel");
+				ButtonGroup grp = new ButtonGroup();
+				grp.add(btnPnlMain);
+				grp.add(btnPnlCorner);
+
+				c.gridwidth = 1;
+				c.gridy++;
+				btnPnlMain.setSelected(true);
+				dlg.add(btnPnlMain, c);
+				dlg.add(btnPnlCorner, c);
+
+				JLabel lblChooseFractal = new JLabel(
+						"Choose a fractal to display");
+
+				c.gridwidth = 2;
+				c.gridy++;
+				dlg.add(lblChooseFractal, c);
+
+				final JComboBox<String> cbxFractals = new JComboBox<String>();
+				for (String s : fractals.keySet()) {
+					cbxFractals.addItem(s);
+				}
+				
+				cbxFractals.setSelectedItem(pnlMain.getFractal());
+				
+				ItemListener l = new ItemListener() {
+					@Override
+					public void itemStateChanged(ItemEvent e) {
+						if (e.getStateChange() == ItemEvent.SELECTED) {
+							if (btnPnlMain.isSelected()) {
+								cbxFractals.setSelectedItem(pnlMain.getFractal());
+							} else {
+								cbxFractals.setSelectedItem(pnlCorner.getFractal());
+							}
+						}
+					}
+				};
+				
+				btnPnlMain.addItemListener(l);
+				btnPnlCorner.addItemListener(l);
+				
+				c.gridy++;
+				dlg.add(cbxFractals, c);
+
+				JLabel lblChooseColor = new JLabel(
+						"Choose a coloring system to use");
+
+				c.gridwidth = 2;
+				c.gridy++;
+				dlg.add(lblChooseColor, c);
+
+				final JComboBox<String> cbxColoring = new JComboBox<String>();
+				for (String s : colorschemes.keySet()) {
+					cbxColoring.addItem(s);
+				}
+
+				c.gridy++;
+				dlg.add(cbxColoring, c);
+
+				JButton btnOk = new JButton("Ok");
+				JButton btnCancel = new JButton("Cancel");
+
+				c.gridwidth = 1;
+				c.gridy++;
+				JLabel lblNumIterations = new JLabel("Enter maximum iterations:");
+				dlg.add(lblNumIterations, c);
+				
+				c.fill = GridBagConstraints.HORIZONTAL;
+				final JTextField txtIterations = new JTextField();
+				txtIterations.setText(String.valueOf(Fractal.getMaxIterations()));
+				dlg.add(txtIterations, c);
+				
+				c.fill = GridBagConstraints.NONE;
+				c.gridy++;
+				dlg.add(btnOk, c);
+				dlg.add(btnCancel, c);
+				
+				txtIterations.addKeyListener(new KeyListener() {
+					String last = txtIterations.getText();
+					@Override
+					public void keyTyped(KeyEvent e) {
+					}
+					@Override
+					public void keyPressed(KeyEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					@Override
+					public void keyReleased(KeyEvent e) {
+						if (txtIterations.getText() != null && txtIterations.getText().equals("")) {
+							return;
+						} else {
+							try {
+								Integer.parseInt(txtIterations.getText());
+								last = txtIterations.getText();
+							} catch (IllegalArgumentException ex) {
+								txtIterations.setText(last);
+							}
+						}
+					}
+				});
+				
+				btnOk.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						String sel;
+						String col;
+						if ((sel = (String) cbxFractals.getSelectedItem()) != null
+								&& (col = (String) cbxColoring
+										.getSelectedItem()) != null) {
+							if (btnPnlMain.isSelected()) {
+								GraphPanel pnl = new GraphPanel(fractals
+										.get(sel));
+								pnl.setBounds(0, 0, 512, 512);
+								Coloring c = null;
+								try {
+									c = colorschemes.get(col).newInstance()
+											.setColorPalette(sPalette);
+								} catch (InstantiationException e1) {
+									e1.printStackTrace();
+								} catch (IllegalAccessException e1) {
+									e1.printStackTrace();
+								}
+								pnl.setColorScheme(c);
+								pnlMain.setPanel(pnl);
+							} else if (btnPnlCorner.isSelected()) {
+								GraphPanel pnl = new GraphPanel(fractals
+										.get(sel));
+								Coloring c = null;
+								try {
+									c = colorschemes.get(col).newInstance()
+											.setColorPalette(sPalette);
+								} catch (InstantiationException e1) {
+									e1.printStackTrace();
+								} catch (IllegalAccessException e1) {
+									e1.printStackTrace();
+								}
+								pnl.setColorScheme(c);
+								pnlCorner.setPanel(pnl);
+							} else {
+								return;
+							}
+							Fractal.setMaxIterations(Integer.parseInt(txtIterations.getText()));
+						}
+						dlg.dispatchEvent(new WindowEvent(dlg,
+								WindowEvent.WINDOW_CLOSING));
+					}
+				});
+				btnCancel.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						dlg.dispatchEvent(new WindowEvent(dlg,
+								WindowEvent.WINDOW_CLOSING));
+					}
+				});
+				
+				dlg.setLocationRelativeTo(null);
+				dlg.setUndecorated(true);
+				dlg.pack();
+				dlg.setVisible(true);
+
+			}
+		});
+		m.addMenuItem(item, KeyEvent.VK_F);
+
 		pnlOverlay.add(m);
 
 		pnlOverlay.addMouseListener(new MouseAdapter() {
@@ -337,8 +590,9 @@ public class AppWindow extends JFrame {
 				if (e.getButton() == MouseEvent.BUTTON3) {
 					m.show(pnlOverlay, e.getX(), e.getY());
 				} else if (e.getButton() == MouseEvent.BUTTON1 && bCursorMode) {
-					cursor = pnlMain.getMathCoords(e.getPoint());
-					pnlCorner.updateFractal(cursor);
+					cursor.setPoint(pnlMain.getMathCoords(e.getPoint()));
+					coords.setText(cursor.toString());
+					pnlCorner.updateFractal(cursor.getPoint());
 				}
 			}
 		});
@@ -347,11 +601,9 @@ public class AppWindow extends JFrame {
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				if (!bCursorMode && !m.isVisible()) {
-					cursor = pnlMain.getMathCoords(e.getPoint());
-					coords.setText("Selected point: "
-							+ MathUtil.round(cursor.getReal(), 3) + "+"
-							+ MathUtil.round(-cursor.getImaginary(), 3) + "i");
-					pnlCorner.updateFractal(cursor);
+					cursor.setPoint(pnlMain.getMathCoords(e.getPoint()));
+					coords.setText(cursor.toString());
+					pnlCorner.updateFractal(cursor.getPoint());
 				}
 			}
 		});

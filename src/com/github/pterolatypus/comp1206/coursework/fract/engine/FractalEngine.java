@@ -3,12 +3,13 @@ package com.github.pterolatypus.comp1206.coursework.fract.engine;
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.github.pterolatypus.comp1206.coursework.fract.gui.Coloring;
+import com.github.pterolatypus.comp1206.coursework.fract.gui.GraphPanel;
 import com.github.pterolatypus.comp1206.coursework.fract.math.Complex;
 import com.github.pterolatypus.comp1206.coursework.fract.math.Fractal;
 
@@ -17,14 +18,15 @@ public class FractalEngine extends Thread {
 	private boolean bRun = true;
 
 	private ConcurrentLinkedQueue<Runnable> taskQueue = new ConcurrentLinkedQueue<Runnable>();
-	private NotifyListener parent;
+	private GraphPanel parent;
 
 	private Fractal f;
 	private Double mathBounds;
 
 	private BufferedImage graphImage;
+	private Coloring colorScheme;
 	
-	public FractalEngine(Fractal f, NotifyListener parent) {
+	public FractalEngine(Fractal f, GraphPanel parent) {
 		super();
 		this.f = f;
 		this.parent = parent;
@@ -49,17 +51,21 @@ public class FractalEngine extends Thread {
 		}
 	}
 	
-	public void updateFractal(Complex p) {
-		this.f = f.updateFractal(p);
+	public synchronized void updateFractal(Complex p) {
+		this.f = f.updateFractal(p, colorScheme);
 	}
 
 	public BufferedImage getImage() {
-		return graphImage;
+			return graphImage;
 	}
 
 	public void updateMathBounds(Rectangle2D.Double mathBounds) {
 		this.mathBounds = mathBounds;
-		
+	}
+	
+	public void setColorScheme(Coloring c) {
+		colorScheme = c;
+		f.setColoring(c);
 	}
 
 	public void updateImage(final Rectangle pixelBounds) {
@@ -73,13 +79,16 @@ public class FractalEngine extends Thread {
 						} else {
 							double mathX = (x/pixelBounds.getWidth())*mathBounds.getWidth()+mathBounds.getX();
 							double mathY = (y/pixelBounds.getHeight())*mathBounds.getHeight()+mathBounds.getY();
-							Color c = f.calculate(new Complex(mathX,mathY));
+							Color c;
+							synchronized(this){
+								c = f.calculate(new Complex(mathX,mathY));
+							}
 							im.setRGB(x,y,c.getRGB());
 						}
 					}
 				}
 				graphImage = im;
-				parent.notifyOf();
+				parent.repaint();
 			}
 		});
 	}

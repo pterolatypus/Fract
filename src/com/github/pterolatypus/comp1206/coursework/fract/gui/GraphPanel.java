@@ -13,21 +13,21 @@ import java.util.Stack;
 import javax.swing.JPanel;
 
 import com.github.pterolatypus.comp1206.coursework.fract.engine.FractalEngine;
-import com.github.pterolatypus.comp1206.coursework.fract.engine.NotifyListener;
 import com.github.pterolatypus.comp1206.coursework.fract.math.Complex;
 import com.github.pterolatypus.comp1206.coursework.fract.math.Fractal;
 
-public class GraphPanel extends JPanel implements NotifyListener {
+public class GraphPanel extends JPanel {
 
 	private static final long serialVersionUID = AppWindow.serialVersionUID;
 	private FractalEngine graphEngine;
 	private Stack<Rectangle2D.Double> stackZoomFrames = new Stack<Rectangle2D.Double>();
-	
+
+
 	public GraphPanel(Fractal f) {
 		super();
 		this.graphEngine = new FractalEngine(f, this);
 		graphEngine.start();
-		stackZoomFrames.push(new Rectangle2D.Double(-2d,1.6d,4d,-3.2d));
+		stackZoomFrames.push(new Rectangle2D.Double(-2d, -1.6d, 4d, 3.2d));
 		graphEngine.updateMathBounds(stackZoomFrames.peek());
 
 		// Force the entire graph to be recalculated when the window is resized,
@@ -43,23 +43,29 @@ public class GraphPanel extends JPanel implements NotifyListener {
 
 	public void paint(Graphics g) {
 		Graphics2D gr = (Graphics2D) g;
-		gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+				RenderingHints.VALUE_ANTIALIAS_ON);
+		graphEngine.updateImage(new Rectangle(getWidth(), getHeight()));
 		gr.drawImage(graphEngine.getImage(), 0, 0, this);
 	}
-	
+
 	public void updateImage(Rectangle pixelBounds, Fractal f) {
 		graphEngine.updateImage(pixelBounds, f);
 	}
-	
+
 	public void setMathBounds(Rectangle pixelBounds) {
 		Complex tl = getMathCoords(pixelBounds.getLocation());
-		Complex br = getMathCoords(new Point((int)(pixelBounds.getX()+pixelBounds.getWidth()), (int)(pixelBounds.getY()+pixelBounds.getHeight())));
-		Rectangle2D.Double mathBounds = new Rectangle2D.Double(tl.getReal(), tl.getImaginary(), br.getReal()-tl.getReal(), br.getImaginary()-tl.getImaginary());
+		Complex br = getMathCoords(new Point(
+				(int) (pixelBounds.getX() + pixelBounds.getWidth()),
+				(int) (pixelBounds.getY() + pixelBounds.getHeight())));
+		Rectangle2D.Double mathBounds = new Rectangle2D.Double(tl.getReal(),
+				tl.getImaginary(), br.getReal() - tl.getReal(),
+				br.getImaginary() - tl.getImaginary());
 		stackZoomFrames.push(mathBounds);
 		graphEngine.updateMathBounds(mathBounds);
 		graphEngine.updateImage(new Rectangle(getWidth(), getHeight()));
 	}
-	
+
 	public void zoomOut() {
 		if (stackZoomFrames.size() > 1) {
 			stackZoomFrames.pop();
@@ -68,18 +74,24 @@ public class GraphPanel extends JPanel implements NotifyListener {
 		graphEngine.updateImage(new Rectangle(getWidth(), getHeight()));
 	}
 
-	@Override
-	public void notifyOf() {
-		this.repaint();
+	public void resetZoom() {
+		while (stackZoomFrames.size() > 1) {
+			zoomOut();
+		}
 	}
 
 	public Complex getMathCoords(Point pixelCoords) {
-		return graphEngine.getMathCoords(pixelCoords, new Rectangle(getWidth(), getHeight()));
+		return graphEngine.getMathCoords(pixelCoords, new Rectangle(getWidth(),
+				getHeight()));
 	}
-	
+
+	public void setColorScheme(Coloring c) {
+		graphEngine.setColorScheme(c);
+	}
+
 	public void updateFractal(Complex p) {
 		graphEngine.updateFractal(p);
 		graphEngine.updateImage(new Rectangle(getWidth(), getHeight()));
 	}
-	
+
 }

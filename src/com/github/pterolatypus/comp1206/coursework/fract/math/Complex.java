@@ -56,4 +56,26 @@ public class Complex {
 		return new Complex(real, imaginary);
 	}
 	
+	public Complex multiply(Complex c) {
+		double real = getReal();
+		double imag = getImaginary();
+		real = (real*c.getReal())-(imag*c.getImaginary());
+		imag = (real*c.getImaginary())+(imag*c.getReal());
+		return new Complex(real, imag);
+	}
+	
+	public Complex pow(int power) {
+		Complex c = new Complex(getReal(), getImaginary());
+		for (int i = power; i > 1; i--) {
+			c = c.multiply(c);
+		}
+		return c;
+	}
+	
+	@Override
+	public Complex clone() {
+		Complex x = new Complex(this.getReal(), this.getImaginary());
+		return x;
+	}
+	
 }

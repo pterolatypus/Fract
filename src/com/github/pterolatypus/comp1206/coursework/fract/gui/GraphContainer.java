@@ -21,12 +21,20 @@ public class GraphContainer extends DraggablePanel {
 		return panel.getMathCoords(p);
 	}
 	
+	public GraphPanel getPanel() {
+		return this.panel;
+	}
+	
 	public void updateFractal(Complex p) {
 		panel.updateFractal(p);
 	}
 	
 	public void zoomOut() {
 		panel.zoomOut();
+	}
+	
+	public void resetZoom() {
+		panel.resetZoom();
 	}
 	
 	@Override
@@ -51,6 +59,11 @@ public class GraphContainer extends DraggablePanel {
 	
 	public void setMathBounds(Rectangle r) {
 		panel.setMathBounds(r);
+	}
+	
+	public void setColorScheme(Coloring c) {
+		panel.setColorScheme(c);
+		repaint();
 	}
 	
 }

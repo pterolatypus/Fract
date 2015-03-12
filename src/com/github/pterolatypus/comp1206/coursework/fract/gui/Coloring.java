@@ -49,7 +49,7 @@ public abstract class Coloring {
 				this.palette = (Color[]) value;
 				return this;
 			}
-			throw new InvalidPropertyException();
+			throw new InvalidPropertyException(propertyName, value, this);
 		}
 	};
 

@@ -71,10 +71,12 @@ public class FractalEngine extends Thread {
 	public void updateImage(final Rectangle pixelBounds) {
 		taskQueue.add(new Runnable() {
 			public void run() {
-				BufferedImage im = new BufferedImage((int)pixelBounds.getWidth(), (int)pixelBounds.getHeight(), BufferedImage.TYPE_INT_RGB);
-				for (int x = 0; x < pixelBounds.getWidth(); x++) {
-					for (int y = 0; y < pixelBounds.getHeight(); y++) {
-						if (x==0 || y==0 || x==pixelBounds.getWidth()-1 || y==pixelBounds.getWidth()-1) {
+				int width = (int) pixelBounds.getWidth();
+				int height = (int) pixelBounds.getHeight();
+				BufferedImage im = new BufferedImage((width > 0)?width:1, (height > 0)?height:1, BufferedImage.TYPE_INT_RGB);
+				for (int x = 0; x < width; x++) {
+					for (int y = 0; y < height; y++) {
+						if (x==0 || y==0 || x==width-1 || y==height-1) {
 							im.setRGB(x,y,Color.BLACK.getRGB());
 						} else {
 							double mathX = (x/pixelBounds.getWidth())*mathBounds.getWidth()+mathBounds.getX();

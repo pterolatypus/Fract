@@ -15,13 +15,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -96,7 +104,8 @@ public class AppWindow extends JFrame {
 				LogSmoothRepeating.class);
 	}
 
-	// The default palette of colours to iterate through when choosing pixel colour
+	// The default palette of colours to iterate through when choosing pixel
+	// colour
 	private static Color[] sPalette = new Color[] { Color.red, Color.orange,
 			Color.white };
 
@@ -106,7 +115,8 @@ public class AppWindow extends JFrame {
 	private GraphContainer pnlMain = new GraphContainer();
 
 	// Pretty much everything happens here.
-	public AppWindow() throws InstantiationException, IllegalAccessException {
+	public AppWindow() throws InstantiationException, IllegalAccessException,
+			IOException {
 		// Boilerplate setup
 		super("Fract: Interactive Fractal Visualizer");
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -114,6 +124,41 @@ public class AppWindow extends JFrame {
 		this.setBounds(0, 0, 100, 100);
 		this.setExtendedState(MAXIMIZED_BOTH);
 		this.setLayout(new BorderLayout());
+
+		// Set up file handling and load preexisting favourites
+		{
+			File favouritesFile = new File("favourites.csv");
+			if (!favouritesFile.exists()) {
+				try {
+					favouritesFile.createNewFile();
+					System.out.println("No favourites file found, creating new file.");
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+			} else {
+				BufferedReader favouritesReader = new BufferedReader(
+						new FileReader(favouritesFile));
+				while (favouritesReader.ready()) {
+					String line = favouritesReader.readLine();
+					Pattern p = Pattern
+							.compile("(.*),(-?\\d+(\\.\\d+))\\+(-?\\d+(\\.\\d+))i");
+					Matcher m = p.matcher(line);
+					if (m.matches()) {
+						String name = m.group(1);
+						double real = Double.parseDouble(m.group(2));
+						double imaginary = Double.parseDouble(m.group(3));
+						favourites.put(name, new Complex(real, imaginary));
+						System.out.println("Parsed favourites line:");
+						System.out.println(line);
+					} else {
+						System.err
+								.println("An invalid favourites line was detected:");
+						System.err.println(line);
+					}
+				}
+				favouritesReader.close();
+			}
+		}
 
 		// Scoped to stop me accidentally referencing the GraphPanels elsewhere.
 		// GraphPanels shouldn't be referenced, they should remain anonymous to
@@ -151,8 +196,9 @@ public class AppWindow extends JFrame {
 		final ContextMenu m = new ContextMenu() {
 			private static final long serialVersionUID = AppWindow.serialVersionUID;
 
-			private JMenuItem itemSwap, itemDrop, itemLift, itemSave, itemLoad, itemConfig;
-			
+			private JMenuItem itemSwap, itemDrop, itemLift, itemSave, itemLoad,
+					itemConfig;
+
 			{
 				itemSwap = new JMenuItem("Swap Panels");
 				itemSwap.addActionListener(new ActionListener() {
@@ -236,6 +282,11 @@ public class AppWindow extends JFrame {
 												.getImaginary(), 3) + "i)";
 								if (!favourites.containsKey(name)) {
 									favourites.put(name, cursor.getPoint());
+									try {
+										saveFavourites();
+									} catch (IOException e1) {
+										e1.printStackTrace();
+									}
 									dlg.dispatchEvent(new WindowEvent(dlg,
 											WindowEvent.WINDOW_CLOSING));
 								} else {
@@ -262,6 +313,11 @@ public class AppWindow extends JFrame {
 												ActionEvent e) {
 											favourites.put(name,
 													cursor.getPoint());
+											try {
+												saveFavourites();
+											} catch (IOException e1) {
+												e1.printStackTrace();
+											}
 											dlgYN.dispatchEvent(new WindowEvent(
 													dlgYN,
 													WindowEvent.WINDOW_CLOSING));
@@ -458,18 +514,8 @@ public class AppWindow extends JFrame {
 						dlg.add(btnOk, c);
 						dlg.add(btnCancel, c);
 
-						txtIterations.addKeyListener(new KeyListener() {
+						txtIterations.addKeyListener(new KeyAdapter() {
 							String last = txtIterations.getText();
-
-							@Override
-							public void keyTyped(KeyEvent e) {
-							}
-
-							@Override
-							public void keyPressed(KeyEvent e) {
-								// TODO Auto-generated method stub
-
-							}
 
 							@Override
 							public void keyReleased(KeyEvent e) {
@@ -503,9 +549,12 @@ public class AppWindow extends JFrame {
 										pnl.setBounds(0, 0, 512, 512);
 										Coloring c = null;
 										try {
-											c = colorschemes.get(col)
+											c = colorschemes
+													.get(col)
 													.newInstance()
-													.setProperty("colorPalette", sPalette);
+													.setProperty(
+															"colorPalette",
+															sPalette);
 										} catch (InstantiationException e1) {
 											e1.printStackTrace();
 										} catch (IllegalAccessException e1) {
@@ -518,9 +567,12 @@ public class AppWindow extends JFrame {
 												fractals.get(sel));
 										Coloring c = null;
 										try {
-											c = colorschemes.get(col)
+											c = colorschemes
+													.get(col)
 													.newInstance()
-													.setProperty("colorPalette", sPalette);
+													.setProperty(
+															"colorPalette",
+															sPalette);
 										} catch (InstantiationException e1) {
 											e1.printStackTrace();
 										} catch (IllegalAccessException e1) {
@@ -570,7 +622,7 @@ public class AppWindow extends JFrame {
 					pnlCorner.updateFractal(cursor.getPoint());
 				}
 			}
-			
+
 			@Override
 			public void mouseMoved(MouseEvent e) {
 				if (!bCursorMode) {
@@ -579,7 +631,7 @@ public class AppWindow extends JFrame {
 					pnlCorner.updateFractal(cursor.getPoint());
 				}
 			}
-			
+
 		};
 
 		pnlOverlay.addMouseListener(mouseTrackListener);
@@ -638,5 +690,15 @@ public class AppWindow extends JFrame {
 	public void dropCursor() {
 		bCursorMode = true;
 		pnlCorner.updateFractal(cursor.getPoint());
+	}
+
+	public void saveFavourites() throws IOException {
+		PrintStream favouritesWriter = new PrintStream(new FileOutputStream(
+				new File("favourites.csv")));
+		for (String s : favourites.keySet()) {
+			String lineOut = s + "," + favourites.get(s).toString();
+			favouritesWriter.println(lineOut);
+		}
+		favouritesWriter.close();
 	}
 }

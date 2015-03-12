@@ -1,6 +1,7 @@
 package com.github.pterolatypus.comp1206.coursework.fract.gui;
 
 import java.awt.Component;
+import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.Rectangle;
 
@@ -15,6 +16,7 @@ public class GraphContainer extends DraggablePanel {
 	
 	public GraphContainer() {
 		super();
+		setLayout(new GridLayout(1,1));
 	}
 	
 	public Complex getMathCoords(Point p) {
@@ -68,6 +70,12 @@ public class GraphContainer extends DraggablePanel {
 	
 	public String getFractal() {
 		return panel.getFractal();
+	}
+	
+	@Override
+	public void validate() {
+		panel.setBounds(0,0,getWidth(),getHeight());
+		super.validate();
 	}
 	
 }

@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.Rectangle2D.Double;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -21,11 +20,11 @@ public class FractalEngine extends Thread {
 	private GraphPanel parent;
 
 	private Fractal f;
-	private Double mathBounds;
+	private Rectangle2D.Double mathBounds;
 
 	private BufferedImage graphImage;
 	private Coloring colorScheme;
-	
+
 	public FractalEngine(Fractal f, GraphPanel parent) {
 		super();
 		this.f = f;
@@ -33,6 +32,8 @@ public class FractalEngine extends Thread {
 		this.setPriority(this.getPriority() - 1);
 	}
 
+	// As long as the thread hasn't been terminated, continually loops checking
+	// if any tasks are waiting to be executed.
 	@Override
 	public void run() {
 		while (bRun) {
@@ -50,42 +51,52 @@ public class FractalEngine extends Thread {
 			}
 		}
 	}
-	
+
 	public synchronized void updateFractal(Complex p) {
 		this.f = f.updateFractal(p, colorScheme);
 	}
 
-	public BufferedImage getImage() {
-			return graphImage;
+	public synchronized BufferedImage getImage() {
+		return graphImage;
 	}
 
 	public void updateMathBounds(Rectangle2D.Double mathBounds) {
 		this.mathBounds = mathBounds;
 	}
-	
+
 	public void setColorScheme(Coloring c) {
 		colorScheme = c;
 		f.setColoring(c);
 	}
 
-	public void updateImage(final Rectangle pixelBounds) {
+	/**
+	 * Actually updates the stored {@link BufferedImage} to be a pixel-for-pixel
+	 * render of the {@link Fractal} this engine is assigned
+	 * 
+	 * @param pixelBounds
+	 *            The size of the {@link BufferedImage}
+	 */
+	public synchronized void updateImage(final Rectangle pixelBounds) {
 		taskQueue.add(new Runnable() {
 			public void run() {
 				int width = (int) pixelBounds.getWidth();
 				int height = (int) pixelBounds.getHeight();
-				BufferedImage im = new BufferedImage((width > 0)?width:1, (height > 0)?height:1, BufferedImage.TYPE_INT_RGB);
+				// If the pixelbounds are 0,0 (as can sometimes happen after
+				// panel-switching) calculate a temporary 1x1 image to avoid errors
+				BufferedImage im = new BufferedImage((width > 0) ? width : 1,
+						(height > 0) ? height : 1, BufferedImage.TYPE_INT_RGB);
 				for (int x = 0; x < width; x++) {
 					for (int y = 0; y < height; y++) {
-						if (x==0 || y==0 || x==width-1 || y==height-1) {
-							im.setRGB(x,y,Color.BLACK.getRGB());
+						// If the point being calculated is on the edge of the
+						// image, make it black (I couldn't get swing borders to
+						// work properly, so this renders a 1px border manually)
+						if (x == 0 || y == 0 || x == width - 1
+								|| y == height - 1) {
+							im.setRGB(x, y, Color.BLACK.getRGB());
 						} else {
-							double mathX = (x/pixelBounds.getWidth())*mathBounds.getWidth()+mathBounds.getX();
-							double mathY = (y/pixelBounds.getHeight())*mathBounds.getHeight()+mathBounds.getY();
-							Color c;
-							synchronized(this){
-								c = f.calculate(new Complex(mathX,mathY));
-							}
-							im.setRGB(x,y,c.getRGB());
+							Complex mPoint = getMathCoords(new Point(x,y), pixelBounds);
+							Color c = f.calculate(mPoint);
+							im.setRGB(x, y, c.getRGB());
 						}
 					}
 				}
@@ -104,6 +115,12 @@ public class FractalEngine extends Thread {
 		bRun = false;
 	}
 
+	/**
+	 * Converts a pixel coordinate to a {@link Complex} coordinate using the given pixel-bounds
+	 * @param pixelCoords The coordinate to convert
+	 * @param pixelBounds The size of the pixel-space which generated the coordinate
+	 * @return the {@link Complex} number represented by the given point in the given pixel-space
+	 */
 	public Complex getMathCoords(Point pixelCoords, Rectangle pixelBounds) {
 		double mathX = (pixelCoords.getX() / pixelBounds.getWidth())
 				* mathBounds.getWidth() + mathBounds.getX();
@@ -112,6 +129,9 @@ public class FractalEngine extends Thread {
 		return new Complex(mathX, mathY);
 	}
 
+	/**
+	 * @return The name of the {@link Fractal} this engine is currently tasked with calculating
+	 */
 	public String getFractal() {
 		return f.toString();
 	}

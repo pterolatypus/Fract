@@ -4,6 +4,11 @@ import java.awt.Dimension;
 
 import javax.swing.JPanel;
 
+/**
+ * The class used by the custom glass panel, only exists to move some boilerplate out of the main class.
+ * 
+ * @author James
+ */
 public class OverlayPanel extends JPanel {
 
 	private static final long serialVersionUID = AppWindow.serialVersionUID;

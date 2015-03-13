@@ -174,7 +174,7 @@ public abstract class Fractal {
 	/**
 	 * The method (overridden by each sub-Fractal) which actually performs the
 	 * iterations and calculates the parameters used to render each pixel. This
-	 * method should make a call to {@link Coloring.getColor} to determine what
+	 * method should make a call to {@link Coloring#getColor(int, Complex, int)} to determine what
 	 * {@link Color} to return
 	 * 
 	 * @param point

@@ -116,8 +116,8 @@ public class GraphPanel extends JPanel {
 	}
 
 	/**
-	 * If this graph is a dependent fractal (i.e. Julia) updates its root point to the given {@Complex} point
-	 * @param p the new {@Complex} root to use
+	 * If this graph is a dependent fractal (i.e. Julia) updates its root point to the given {@link Complex} point
+	 * @param p the new {@link Complex} root to use
 	 */
 	public void updateFractal(Complex p) {
 		graphEngine.updateFractal(p);
@@ -125,7 +125,7 @@ public class GraphPanel extends JPanel {
 	}
 
 	/**
-	 * @return The name of the {@Fractal} currently represented by this graph
+	 * @return The name of the {@link Fractal} currently represented by this graph
 	 */
 	public String getFractal() {
 		return graphEngine.getFractal();

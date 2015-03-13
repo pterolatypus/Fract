@@ -3,7 +3,7 @@ package com.github.pterolatypus.comp1206.coursework.fract.engine;
 import com.github.pterolatypus.comp1206.coursework.fract.gui.AppWindow;
 
 /**
- * An exception thrown when a call to {@link Coloring.setProperty} is made with an invalid property name or a value of invalid type for
+ * An exception thrown when a call to {@link com.github.pterolatypus.comp1206.coursework.fract.gui.Coloring#setProperty(String, Object)} is made with an invalid property name or a value of invalid type for
  * the specified property
  * 
  * @author James

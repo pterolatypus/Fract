@@ -11,7 +11,7 @@ public class Main {
 
 	/**
 	 * 
-	 * Creates a new instance of AppWindow and sets it to be visible. Most code is done in the AppWindow constructor.
+	 * Creates a new instance of {@link AppWindow} and sets it to be visible. Most code is done in the AppWindow constructor.
 	 * 
 	 * @param args
 	 * @throws IOException if a fatal IOException causes file handling to fail, to avoid possible data loss.
